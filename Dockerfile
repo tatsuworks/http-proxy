@@ -46,7 +46,7 @@ RUN touch src/main.rs && \
         --target="$(uname -m)-unknown-linux-musl" --features="$FEATURES" && \
     cp target/$(uname -m)-unknown-linux-musl/release/twilight-http-proxy /twilight-http-proxy && \
     strip /twilight-http-proxy && \
-    grep -q 'Listening on http://' /twilight-http-proxy
+    strings /twilight-http-proxy | grep -q 'Listening on http://'
 
 FROM scratch
 
