@@ -18,7 +18,7 @@ COPY ./Cargo.toml ./Cargo.toml
 RUN mkdir src/
 RUN echo 'fn main() {}' > ./src/main.rs
 RUN source $HOME/.cargo/env && \
-    cargo build \
+    cargo build --locked \
         --release \
         -Zbuild-std=std,panic_abort \
         --target="$(uname -m)-unknown-linux-musl" \
@@ -37,13 +37,16 @@ RUN source $HOME/.cargo/env && \
 RUN rm -f target/$(uname -m)-unknown-linux-musl/release/deps/twilight_http_proxy*
 COPY ./src ./src
 
-RUN source $HOME/.cargo/env && \
-    cargo build \
+# Cargo must see the real entrypoint as newer than the cached placeholder.
+RUN touch src/main.rs && \
+    source $HOME/.cargo/env && \
+    cargo build --locked \
         --release \
         -Zbuild-std=std,panic_abort \
         --target="$(uname -m)-unknown-linux-musl" --features="$FEATURES" && \
     cp target/$(uname -m)-unknown-linux-musl/release/twilight-http-proxy /twilight-http-proxy && \
-    strip /twilight-http-proxy
+    strip /twilight-http-proxy && \
+    strings /twilight-http-proxy | grep -q 'Listening on http://'
 
 FROM scratch
 
